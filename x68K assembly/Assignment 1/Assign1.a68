@@ -1,0 +1,150 @@
+		.TITLE	"Assign1"
+		.PSIZE	42										
+
+/****************************************************************
+ *	FILENAME:	Assign1.a68
+ *
+ *	STUDENT NAME (AUTHOR): eric warren
+ *	STUDENT NUMBER: 1010171763
+ *	STUDENT E-MAIL ADDRESS:warr0181@algonquinlive.com
+ *	LAB SECTION:A3
+ *
+ *	ASSIGNMENT NUMBER AND NAME:1, what instuction?
+ *	PROFESSOR'S NAME:Dave Caughey
+ *
+ *
+ ****************************************************************/
+
+		.NOLIST													
+|		.INCLUDE "..\\Include\\ASCII.i"
+		.INCLUDE "ASCII.i"									
+		.LIST													
+
+/************ CONSTANT DATA ************************************/
+		.TEXT	1				
+Enter:		.BYTE	CR,LF
+			.ASCIZ	"Enter a 2-Byte hex value, or 0 to quit: "				
+										
+Invaild:	.ASCIZ	"Invaild..."					
+			.BYTE	CR,LF
+
+Code:		.BYTE	CR,LF
+			.ASCIZ	"Your machine code is a: "
+			
+addout:		.ASCIZ	"ADDI."
+
+subout:		.ASCIZ	"SUBI."
+
+chkout:		.ASCIZ	"CHK."
+
+moveaout:	.ASCIZ	"MOVEA."
+
+muluout:	.ASCIZ	"MULU"
+
+long_:		.ASCIZ	"L"
+
+word_:		.ASCIZ	"W"
+
+byte_:		.ASCIZ	"B"
+
+nosize:		.ASCIZ	"?"
+			
+			
+		.TEXT	0
+		
+Input: 	movea.l #Enter,A0	|moving promt to output
+		jsr		PrintMsg	/*Promt for input*/
+		move.b 	#4,d1		/*Lenght of input*/
+		jsr		InHex		/*Get input*/
+		BVS	Inv				/*Branch if invaild*/
+		cmp.l	#0x0000,d0	|testing to see if user inputed 0 to exit
+		beq.w	Done		|branch if 0
+		movea.l	#Code,a0	|get promt for anwser ready
+		jsr PrintMsg		|output promt
+		move.l	#0x0600,d1	/*opcode for ADDI*/
+		move.l 	#0xff00,d2 	/*opcode mask for AddI and SubI*/
+		move.l	#0x0006,d3	/*sizebit for ADDI and SUBI*/
+		movea.l	#addout,a0	/*output for addi*/
+		jsr checkOP			/*Check if opcode matches*/
+		beq.b	print		/*Skip printing if op code down't match*/
+		move.l	#0x0400,d1	/*opcode for SUBI*/
+		move.l	#subout,a0	/*output for SUBI*/
+		jsr checkOP			/*Check if opcode matches*/
+		beq.b	print		/*Skip printing if op code down't match*/
+		move.l	#0x4000,d1	/*opcode for CHK*/
+		move.l	#0xf400,d2 	/*opcode mask for CHK */
+		move.l	#0x0007,d3	/*Sizebit for chk*/
+		movea.l	#chkout,a0	/*output for chk*/
+		jsr	checkOP			/*Check if opcode matches*/
+		beq.b	print		/*Skip printing if op code don't match*/
+		move.l	#0x0040,d1	/*opcode for MOVEA*/
+		move.l	#0xc1c0,d2 	/*opcode mask for MoveA */
+		move.l	#0x0012,d3	/*sizebit for MOVEA*/
+		movea.l	#moveaout,a0/*output for MOVEA*/
+		jsr checkOP			/*Check if opcode matches*/
+		beq.b	print		/*Skip printing if op code down't match*/
+		move.l	#0xc0c0,d1	/*opcode for MULU*/
+		move.l	#0x00ff,d3	/*sizebit for MULU*/
+		move.l	#0xf1c0,d2 	/*Mask for Mulu*/
+		movea.l	#muluout,a0	/*output for mulu*/
+		jsr checkOP			/*Check if opcode matches*/
+		beq.b	print		/*Skip printing if op code down't match*/
+Inv:	movea.l	#Invaild,a0	|get invaild promt ready in a0
+		jsr		PrintMsg	|print message
+		bra.w	Input		|branch back to start
+print:	jsr	PrintMsg		|print instruction 
+		cmp.l	#0x00ff,d3	|check to see if it has a sizebit
+		beq.w	Input		|branch to start if no sizebit
+		lsr.l	d3,d0		|shift so size bits are first two digits
+		and.l	#0x0003,d0	|mask to only have sizebits
+		cmp.l	#0,d0		|check to seeif sizebit is a byte
+		beq.w	prtbyte		|branch if sizebit is byte
+		cmp.l	#1,d0		|check if sizebit is word
+		beq.w	prtword		|branch if sizebit is word
+		cmp.l	#2,d0		|check if sizebit is long
+		beq.w	prtlong		|branch is sizebiit is long
+		cmp.l	#3,d0		|check if sizebit is word
+		beq.w	prtword		|branch if sizebit is word
+		movea.l	#nosize,a0	|
+		jsr PrintMsg
+		bra.w	Input
+
+
+prtlong:	movea.l	#long_,a0
+			jsr	PrintMsg
+			bra.w	Input
+prtword:	movea.l	#word_,a0
+			jsr	PrintMsg
+			bra.w	Input
+prtbyte:	movea.l	#byte_,a0
+			jsr	PrintMsg
+			bra.w	Input
+Done:
+	
+
+rts
+
+checkOP:	move.l	d0,d4
+			and.l	d2,d4	|masking with value in d2
+			cmp.l	d4,d1	|comparing to op code
+			rts
+/****************************************************************************
+* Compare the machine code against an opcode (using an appropriate mask).
+*
+* It prints out the instruction (e.g., "ADDI.W"),if the machine codematches
+* the provided opcode.
+*
+* Inputs:
+* D0.w machine code instruction
+* D1.w opcode (e.g., 0x0600 for ADDI, 0x4000 for CHK)
+* D2.w opcode mask (e.g., 0xff00 for ADDI, 0xf400 for CHK)
+* D3.b bit location of size bits (See PrintSize)
+* A0.l address of ASCIZ name of instruction (e.g., "ADDI")
+*
+* Outputs:
+* Z flag is set if machine codematches the opcode
+*
+* Does not modify or D3. Destroys D0, D1, D2, A0, A1
+****************************************************************************/
+
+	

@@ -1,0 +1,51 @@
+		.PSIZE	42
+		.TITLE	"Assign3"
+
+		/* PROGRAM:  
+   AUTHOR: Eric Warren 
+   DATE: 31st of January
+   PURPOSE: Spell something backwards
+   LEVEL OF DIFFICULTY: 2
+   CHALLENGES: Not knowing exactly how beq.b works
+   HOURS SPENT: 2.5     
+*/
+
+		.NOLIST
+		.INCLUDE "..\\Include\\ASCII.i"
+		.LIST
+
+
+		.TEXT	1
+Question:	.ASCIZ	"Please enter your name: "
+			.BYTE		CR,LF
+Anwser:		.ASCIZ "Your name backwards is: "
+			.BYTE		CR,LF		
+
+
+	
+		.TEXT	0
+		move.l #2,d1
+		move.l #4,(a6)
+		move.l #0,d5
+		movea.l	#Question,a0
+		jsr     PrintMsg
+		
+GetName:
+		jsr	ConsoleEcho
+		cmp.l #13,d0
+		beq.b Cont
+		move.l d0,(a6)+
+		addq.l #1,d5
+		bra.b GetName
+
+Cont:	move.l #Anwser,a0
+		jsr PrintMsg
+		
+Cont2:	cmp.l -(a6),d5
+		move.l (a6),d0
+		jsr ConsoleOut
+		subq.l #1,d5
+		bne.b Cont2
+
+Last:	jsr ConsoleIn
+		rts

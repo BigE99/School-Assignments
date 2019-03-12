@@ -1,0 +1,122 @@
+		.TITLE	"Lab 6"
+		.PSIZE	42										
+
+/****************************************************************
+ *	FILENAME:	Lab6.a68
+ *
+ *	STUDENT NAME (AUTHOR): eric warren
+ *	STUDENT NUMBER: 1010171763
+ *	STUDENT E-MAIL ADDRESS:warr0181@algonquinlive.com
+ *	LAB SECTION:A3
+ *
+ *	ASSIGNMENT NUMBER AND NAME:lab 6, strutcs?
+ *	PROFESSOR'S NAME:Dave Caughey
+ *
+ *
+ ****************************************************************/
+
+ 		.NOLIST													
+|		.INCLUDE "..\\Include\\ASCII.i"
+		.INCLUDE "ASCII.i"									
+		.LIST			
+		
+/************ CONSTANT DATA ************************************/
+		.TEXT	1				
+course1:	.ASCIZ	"course 1 "	|string to print	
+
+course2:	.byte	CR,LF	
+			.ASCIZ	"course 2 "
+
+course3:	.byte	CR,LF
+			.ASCIZ	"course 3 "
+
+descourse1:	.ASCIZ	"this is the first course "
+
+descourse2:
+			.ASCIZ	"this is the second course "
+
+descourse3:
+			.ASCIZ	"this is the third course "
+anykey:	.byte	CR,LF
+		.ASCIZ	"Press amy key to continue"
+
+/************** My code *************************/
+
+		.TEXT 0
+		
+
+	link a6,#-30		|allocate space for struct
+	lea	(-30,a6),a0		|get refrence to start of struct
+	
+	
+	move.w #10,-(sp)	|num of students in course 1
+	pea	descourse1		|push course description to stack
+	pea	course1			|push course name to stack
+	move.l	a0,-(sp)	|move start of structer address to stack
+	jsr	initcourse		|initiate varibles
+	adda.l	#14,sp		|move stack pointer back to begining
+	adda.l	#10,a0		|add 10 to a0 because the structer is ten bytes long
+	
+	move.w #20,-(sp)	|num of students in course 1
+	pea	descourse2		|push course description to stack
+	pea	course2			|push course name to stack
+	move.l	a0,-(sp)	|move start of structer address to stack
+	jsr	initcourse		|initiate varibles
+	adda.l	#14,sp		|move stack pointer back to begining
+	adda.l	#10,a0		|add 10 to a0 because the structer is ten bytes long
+	
+	move.w #30,-(sp)	|num of students in course 1
+	pea	descourse3		|push course description to stack
+	pea	course3			|push course name to stack
+	move.l	a0,-(sp)	|move start of structer address to stack
+	jsr	initcourse		|initiate varibles
+	adda.l	#14,sp		|move stack pointer back to begining
+	
+	sub.l	#30,a6		|subract 30 from a6 to get to where information about classes are stored
+	move.b 	#0,d1		|initialize counter
+	
+loop:
+		jsr printcourse	|subroutine that prints the course and descrption and num of students
+		adda.l	#4,sp	|get sp to where it was before subroutine
+		addi.b	#1,d1	|add 1 too counter
+		cmp.l	#3,d1	|check to see if counter has hit 3
+		beq.b	done	|branch to end if counter = 3
+		bra.b	loop	|if not loop again
+		
+done:
+	movea.l	#anykey,a0	|move press anykley to continue toa0	
+	jsr PrintMsg		|prints anykey
+	jsr	InHex			|waits for keystroke
+	unlk	a6			|unlk to clean up stack
+	rts
+	
+initcourse:
+	link a6,#0			
+	move.l 	(8,a6),a1	|get pcourse and move to a1
+	move.l 	(12,a6),d0	|move address of course name to a1
+	move.l	d0,(0,a1)	|move address of course name to stack relative to pcourse
+	move.l	(16,a6),d0	|move address of course descrition to a1
+	move.l 	d0,(4,a1)	|move address of course description to stack relative to pcourse
+	move.w	(20,a6),d0	|move num of students to d0
+	move.w	d0,(8,a1)	|move num of students to stack relative to pcourse 
+	unlk a6				
+	rts	
+
+
+printcourse:
+	link a6,#0
+	move.l	d1,-(sp)		|back up d1
+	mulu.w #6,d1			|find the proper index for the struct
+	move.l	(8,a6,d1),a0	|put course name for that struct into a0
+	jsr PrintMsg			|print course name
+	move.l	(12,a6,d1),a0	|put course description for that struct into a0
+	jsr	PrintMsg			|print course descrition
+	move.w	(16,a6,d1),d0	|put num of students for that struct into d0
+	move.b	#2,d1			|put 2 into d1 so it only prints 2 hex digits
+	jsr OutHex				|output num of students
+	
+	move.l	(sp)+,d1		|restore d1
+	unlk	a6
+	rts
+	
+

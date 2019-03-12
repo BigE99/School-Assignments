@@ -1,0 +1,104 @@
+		.PSIZE	52
+		.TITLE	"Assignment 2"
+
+/****************************************************************
+FILENAME: assign2.a68
+
+STUDENT NAME (AUTHOR): eric warren
+
+STUDENT NUMBER:040911176
+
+STUDENT E-MAIL ADDRESS: warr0181@algonquincollege.com
+
+LAB SECTION: A3
+
+ASSIGNMENT NUMBER AND NAME: 2 - Multiplication
+
+PROFESSOR'S NAME: Reg Dyer
+
+PURPOSE: Multiply 2 unsigned integers using repeated addition
+****************************************************************/
+
+	|
+	|Include the file ASCII.i.
+	|
+			.NOLIST
+			.INCLUDE 	"..\\Include\\ASCII.i"
+			.LIST
+
+			.TEXT	0
+Prompt1:	.ASCII		"This program calculates the product of 2"
+			.ASCII		" unsigned hex integers."
+			.BYTE		CR,LF
+
+Prompt2:	.BYTE		CR,LF
+			.ASCIZ		"Enter an unsigned integer (HEX): "
+
+Prompt3:	.BYTE		CR,LF,CR,LF
+			.ASCIZ          "The product is: "
+                
+Prompt4:	.BYTE		CR,LF
+			.ASCIZ          "Press any key to end program."
+
+
+		.TEXT		1
+		.GLOBAL		ASSIGN2
+/*****************************************************************************
+HISTORY
+   ??-Jan-07	Errors corrected by "Eric warren"
+FUNCTION
+   Assign2 - 	This program multiplies 2 unsigned integers
+	     		by doing repeated addition.  User must enter
+				values greater than 0.
+DESCRIPTION
+	GET Num1
+	GET Num2
+	Product <- 0
+	DO
+	   Product <- Product + Num1
+	   Num2 <- Num2 - 1
+	WHILE (Num2 NOT= 0)
+	PUT Product
+
+INPUTS
+   None.
+OUTPUTS
+   None.
+EXTERNAL INPUTS
+   2 integers
+EXTERNAL OUTPUTS
+   Prompts
+   Product
+REGISTERS DESTROYED
+    a0, d0, d1, d3, d4
+*****************************************************************************/
+Assign2: movea.l	#Prompt1, a0
+		jsr	PrintMsg
+
+		movea.l		#Prompt2, a0
+		jsr	PrintMsg
+
+		jsr	InHex				| GET 1st integer
+		move.l		d0, d3
+		jsr	PrintMsg
+
+		move.l		#8, d1			| GET 2nd integer
+		jsr	InHex					| get characters entered from the keyboard
+		move.l		d0, d4			| save 2nd integer in D4
+
+		move.l		0, d0			| Product <- 0
+
+MultLoop:
+		add.l		d3, d0
+		subq.l		#1, d4
+		bne.b		Assign2
+
+		movea.l		#Prompt3, a0	| Display Product
+		jsr	PrintMsg
+		move.l		#8, d1
+		jsr	OutHex
+
+		movea.l		Prompt4, a1
+		jsr	PrintMsg
+		jsr	ConsoleIn
+		rts

@@ -1,0 +1,119 @@
+		.TITLE	"Lab4"
+		.PSIZE	42										
+
+/****************************************************************
+ *	FILENAME:	lab4.a68
+ *
+ *	STUDENT NAME (AUTHOR): eric warren
+ *	STUDENT NUMBER: 1010171763
+ *	STUDENT E-MAIL ADDRESS:warr0181@algonquinlive.com
+ *	LAB SECTION:A3
+ *
+ *	ASSIGNMENT NUMBER AND NAME:4, Upper and Lower boundarys
+ *	PROFESSOR'S NAME:Dave Caughey
+ *
+ *
+ ****************************************************************/
+
+		.NOLIST													
+|		.INCLUDE "..\\Include\\ASCII.i"
+		.INCLUDE "ASCII.i"									
+		.LIST													
+
+/************ CONSTANT DATA ************************************/
+		.TEXT	1				
+EnterLow:	.ASCIZ	"Enter the lower number:"				
+										
+EnterHigh:		.BYTE	CR,LF
+			.ASCIZ	"Enter the higher number:"					
+		
+AnyKey:		.BYTE	CR,LF
+			.ASCII	"Press any key to end program."
+					.BYTE	CR,LF,0
+Out:		.ASCII	" ...Outside"
+					.BYTE	CR,LF,0
+In:			.ASCII	" ...Inside"
+					.BYTE	CR,LF,0
+Low:		.ASCII	" Lower boundary"
+					.BYTE	CR,LF,0
+Up:			.ASCII	" Upper boundary"
+					.BYTE	CR,LF,0
+Table:				.BYTE	CR,LF
+				.ASCII	"i Status"
+					.BYTE	CR,LF,0	
+Sep:		.ASCII	"- ------"
+					.BYTE	CR,LF,0
+
+/************ VARIABLE DATA ************************************/
+		.DATA														
+MemoryBlock:	.SPACE	1024,0							
+
+		.text	0
+move.l	#48,A4
+move.l	#EnterLow,A0
+jsr		PrintMsg
+jsr 	ConsoleEcho
+move.l	d0,d2
+move.l	#EnterHigh,A0
+jsr		PrintMsg
+jsr 	ConsoleEcho
+move.l	d0,d3
+move.l	#Table,A0
+jsr		PrintMsg
+move.l	#Sep,A0
+jsr		PrintMsg
+
+Loop:
+cmp.l	d2,a4
+BLT.b	Outside
+cmp.l	d2,a4
+beq.b	LowerLim
+cmp.l	d3,a4
+blt.b	Inside
+cmp.l	d3,a4
+beq.b	UpperLim
+cmp.l	#57,a4
+bgt.b	Final
+bra.b	Outside
+		
+		
+		
+		
+		
+		
+		
+LowerLim:
+		move.l	A4,d0
+		jsr		ConsoleOut
+		move.l	#Low,A0
+		jsr PrintMsg
+		addq.l	#1,a4
+		Bra.b	Loop	
+		
+UpperLim:
+		move.l	A4,d0
+		jsr		ConsoleOut		
+		move.l	#Up,A0
+		jsr PrintMsg
+		addq.l	#1,a4
+		Bra.b	Loop					
+Inside:
+		move.l	A4,d0
+		jsr		ConsoleOut
+		move.l	#In,A0
+		jsr PrintMsg
+		addq.l	#1,a4
+		Bra.b	Loop			
+Outside:
+		move.l	A4,d0
+		jsr		ConsoleOut		
+		move.l	#Out,A0
+		jsr PrintMsg
+		addq.l	#1,a4
+		Bra.b	Loop	
+		
+Final:	
+		move.l	#AnyKey,A0
+		jsr PrintMsg	
+		jsr	ConsoleIn
+		rts

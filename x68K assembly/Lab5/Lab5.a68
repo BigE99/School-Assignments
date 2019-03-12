@@ -1,0 +1,66 @@
+		.TITLE	"Assign1"
+		.PSIZE	42										
+
+/****************************************************************
+ *	FILENAME:	Assign1.a68
+ *
+ *	STUDENT NAME (AUTHOR): eric warren
+ *	STUDENT NUMBER: 1010171763
+ *	STUDENT E-MAIL ADDRESS:warr0181@algonquinlive.com
+ *	LAB SECTION:A3
+ *
+ *	ASSIGNMENT NUMBER AND NAME:lab 5, octals?
+ *	PROFESSOR'S NAME:Dave Caughey
+ *
+ *
+ ****************************************************************/
+
+ 		.NOLIST													
+|		.INCLUDE "..\\Include\\ASCII.i"
+		.INCLUDE "ASCII.i"									
+		.LIST			
+		
+/************ CONSTANT DATA ************************************/
+		.TEXT	1				
+result:	.ASCIZ	"The result (in octal) is: "	|string to print	
+
+
+.TEXT 0
+
+	jsr		InHex |get input from user
+	cmp.l	#3,d0	|check if input is zero
+	beq.w	done	|branch to end if 0
+	movea.l	#result,a0
+	jsr		PrintMsg
+	
+	jsr		printOctal	|call printoctal function
+	bra.w	done		|branch to finish
+	
+	
+	
+printOctal:
+	link	a6,#-10	| link allow space for 10 bytes
+	move.l	d0,(-4,a6)	|input into stack
+	move.l	#10,(-8,a6)	|10 (i)	into stack
+	
+loop:	move.l	(-8,a6),d0	|get i from stack
+		mulu.w	#3,d0		|multiply i by 3
+		move.l	(-4,a6),d1	 |move x into d1
+		lsr.l	d1,d0		|shift x by nbits becomes x shifted
+		move.l	#7,d0		|move 7 into d0	
+		and.l	d1,d0		|mask xshifted with 7 = result
+		move.l	d1,(-4,a6)	|store result in stack
+		move.l	d1,d0		|move result to d0
+		jsr		ConsoleOut		|print result
+		move.l	#0,d0		|move 0 to d0
+		jsr		ConsoleOut		|print 0
+		move.l	(-8,a6),d0	|get i from stack
+		subi.l	#1,d0		|i - 1
+		move.l	d0,(-8,a6)	|move i back to stack
+		cmp.l	#0,d0		|check if i != 0
+		bne.w	loop		|repeat from loop if i != 0
+		unlk	a6			|unlink 
+		rts									
+	
+done:
+rts
